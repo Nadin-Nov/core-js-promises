@@ -94,9 +94,38 @@ function getFirstPromiseResult(promises) {
  * [Promise.resolve(1), Promise.resolve(2), Promise.resolve(3)] => Promise fulfilled with [1, 2, 3]
  * [Promise.resolve(1), Promise.reject(2), Promise.resolve(3)] => Promise rejected with 2
  */
-function getAllOrNothing(promises) {
-  return Promise.all(promises);
-}
+// Пример для getAllOrNothing:
+getAllOrNothing([
+  Promise.resolve(1),
+  Promise.resolve(2),
+  Promise.resolve(3)
+])
+  .then(result => console.log('getAllOrNothing success:', result))  // [1, 2, 3]
+  .catch(error => console.error('getAllOrNothing error:', error));
+
+getAllOrNothing([
+  Promise.resolve(1),
+  Promise.reject(2),
+  Promise.resolve(3)
+])
+  .then(result => console.log('getAllOrNothing success:', result))
+  .catch(error => console.error('getAllOrNothing error:', error)); // error: 2
+
+// Пример для getAllResult:
+getAllResult([
+  Promise.resolve(1),
+  Promise.resolve(2),
+  Promise.resolve(3)
+])
+  .then(result => console.log('getAllResult:', result)); // [1, 2, 3]
+
+getAllResult([
+  Promise.resolve(1),
+  Promise.reject(2),
+  Promise.resolve(3)
+])
+  .then(result => console.log('getAllResult:', result)); // [1, null, 3]
+
 
 /**
  * Processes an array of promises and returns a promise that resolves with an array of their results.
@@ -136,8 +165,18 @@ function getAllResult(promises) {
  * [promise1, promise4, promise3] => Promise.resolved('104030')
  * [promise1, promise4, promise3, promise2] => Promise.resolved('10403020')
  */
-function queuePromises(/* promises */) {
-  throw new Error('Not implemented');
+function queuePromises(promises) {
+  let chain = new Promise(resolve => resolve(''));
+
+  for (const promise of promises) {
+    chain = chain.then(result =>
+      new Promise(resolve => {
+        promise.then(value => resolve(result + value.toString()));
+      })
+    );
+  }
+
+  return chain;
 }
 
 module.exports = {
